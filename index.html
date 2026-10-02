@@ -94,12 +94,37 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+
+        /* Intro Screen Transition */
+        .fade-out {
+            opacity: 0;
+            pointer-events: none;
+            visibility: hidden;
+        }
     </style>
 </head>
 <body>
 
     <div id="app-container" class="flex flex-col min-h-screen text-gray-100">
         
+        <!-- Intro / Fullscreen Prompt Overlay -->
+        <div id="intro-overlay" class="fixed inset-0 z-[100] bg-phantom-dark flex flex-col items-center justify-center transition-all duration-500">
+            <div class="w-24 h-24 rounded-full bg-gradient-to-tr from-phantom-purple to-purple-400 flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(171,159,242,0.4)] animate-pulse-slow">
+                <i class="ph-fill ph-ghost text-white text-5xl"></i>
+            </div>
+            <h1 class="text-4xl font-extrabold text-white mb-2 tracking-tight">Phantom</h1>
+            <p class="text-gray-400 mb-10 text-lg">Your Crypto Wallet</p>
+            
+            <div class="flex flex-col gap-4 w-full max-w-xs px-4">
+                <button onclick="startAppWithFullscreen()" class="w-full py-4 bg-phantom-purple text-black rounded-2xl font-bold text-lg hover:scale-105 transition-transform shadow-[0_0_20px_rgba(171,159,242,0.3)] flex justify-center items-center gap-2">
+                    <i class="ph ph-corners-out text-xl"></i> Launch Fullscreen
+                </button>
+                <button onclick="startAppWithoutFullscreen()" class="w-full py-4 bg-phantom-card text-white border border-gray-800 rounded-2xl font-semibold hover:bg-gray-800 transition-colors">
+                    Continue normally
+                </button>
+            </div>
+        </div>
+
         <!-- Header -->
         <header class="w-full glass-panel border-b border-gray-800/80 sticky top-0 z-30">
             <div class="w-full px-4 sm:px-8 lg:px-12 flex justify-between items-center p-4">
@@ -110,26 +135,28 @@
                         <i class="ph ph-ghost text-white text-lg hidden"></i>
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-xs text-phantom-purple font-semibold flex items-center gap-1">
-                            <span id="header-wallet-name">Wallet 1</span>
-                        </span>
-                        <div class="flex items-center gap-1">
-                            <span id="header-wallet-addr" class="text-sm font-semibold truncate w-24 sm:w-auto">0x7F...3aB9</span>
-                            <i class="ph ph-caret-down text-xs text-phantom-purple"></i>
-                        </div>
+                    <span class="text-xs text-phantom-purple font-semibold flex items-center gap-1">
+                        <span id="header-wallet-name">Wallet 1</span>
+                    </span>
+                    <div class="flex items-center gap-1">
+                        <span id="header-wallet-addr" class="text-sm font-semibold truncate w-24 sm:w-auto">0x7F...3aB9</span>
+                        <i class="ph ph-caret-down text-xs text-phantom-purple"></i>
                     </div>
                 </div>
-                <div class="flex gap-3 items-center">
-                    <button class="text-gray-300 hover:text-white transition-colors p-2 rounded-xl hover:bg-phantom-light" onclick="openAddCryptoModal()"><i class="ph ph-plus-circle text-2xl text-phantom-purple"></i></button>
-                    <button class="text-gray-300 hover:text-white transition-colors relative p-2 rounded-xl hover:bg-phantom-light" onclick="openSettings()">
-                        <i class="ph ph-gear text-2xl"></i>
-                        <span class="absolute top-2 right-2 w-2 h-2 bg-phantom-purple rounded-full animate-pulse-slow"></span>
-                    </button>
-                </div>
             </div>
-        </header>
+            <div class="flex gap-2 items-center">
+                <button class="text-gray-300 hover:text-white transition-colors p-2 rounded-xl hover:bg-phantom-light" onclick="openAddCryptoModal()">
+                    <i class="ph ph-plus-circle text-2xl text-phantom-purple"></i>
+                </button>
+                <button class="text-gray-300 hover:text-white transition-colors relative p-2 rounded-xl hover:bg-phantom-light" onclick="openSettings()">
+                    <i class="ph ph-gear text-2xl"></i>
+                    <span class="absolute top-2 right-2 w-2 h-2 bg-phantom-purple rounded-full animate-pulse-slow"></span>
+                </button>
+            </div>
+        </div>
+    </header>
 
-        <!-- Main Scrollable Content -->
+    <!-- Main Scrollable Content -->
         <main id="main-content" class="flex-1 overflow-y-auto no-scrollbar pb-32 px-4 sm:px-8 lg:px-12 w-full">
             <!-- Content will be injected here by JS -->
         </main>
@@ -265,9 +292,11 @@
         <!-- Settings Modal -->
         <div id="settings-modal" class="hidden fixed inset-0 bg-phantom-dark/95 backdrop-blur-md z-50 flex flex-col items-center justify-start animate-slide-up p-4 overflow-y-auto">
             <div class="w-full max-w-lg my-auto bg-phantom-card border border-gray-800 rounded-3xl overflow-hidden flex flex-col">
-                <div class="flex items-center p-5 border-b border-gray-800 bg-phantom-card sticky top-0 z-10">
-                    <button onclick="closeModal('settings-modal')" class="text-gray-400 hover:text-white mr-4"><i class="ph ph-arrow-left text-2xl"></i></button>
-                    <h2 class="font-semibold text-xl">Settings</h2>
+                <div class="flex items-center justify-between p-5 border-b border-gray-800 bg-phantom-card sticky top-0 z-10">
+                    <div class="flex items-center">
+                        <button onclick="closeModal('settings-modal')" class="text-gray-400 hover:text-white mr-4"><i class="ph ph-arrow-left text-2xl"></i></button>
+                        <h2 class="font-semibold text-xl">Settings</h2>
+                    </div>
                 </div>
                 <div class="p-5 space-y-6">
                     
@@ -305,11 +334,22 @@
                     <div>
                         <h4 class="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-3 px-1">Preferences</h4>
                         <div class="bg-phantom-dark rounded-2xl overflow-hidden border border-gray-800">
+                            <!-- Fullscreen & Minimize Toggle in Settings -->
+                            <div class="flex items-center justify-between p-4 border-b border-gray-800 hover:bg-phantom-light cursor-pointer transition-colors" onclick="toggleFullscreen()">
+                                <div class="flex items-center gap-3">
+                                    <i class="ph ph-corners-out text-xl text-phantom-purple fullscreen-icon-sync"></i>
+                                    <span id="settings-fullscreen-label" class="font-medium">Pełny ekran</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-gray-400 text-sm">
+                                    <span id="settings-fullscreen-status" class="text-phantom-purple font-medium">Wyłączony</span>
+                                    <i class="ph ph-caret-right"></i>
+                                </div>
+                            </div>
                             <div class="flex items-center justify-between p-4 border-b border-gray-800 hover:bg-phantom-light cursor-pointer transition-colors">
                                 <div class="flex items-center gap-3"><i class="ph ph-currency-dollar text-xl text-gray-400"></i><span>Display Currency</span></div>
                                 <div class="flex items-center gap-2 text-gray-400 text-sm"><span>USD</span> <i class="ph ph-caret-right"></i></div>
                             </div>
-                             <div class="flex items-center justify-between p-4 border-b border-gray-800 hover:bg-phantom-light cursor-pointer transition-colors">
+                            <div class="flex items-center justify-between p-4 border-b border-gray-800 hover:bg-phantom-light cursor-pointer transition-colors">
                                 <div class="flex items-center gap-3"><i class="ph ph-globe text-xl text-gray-400"></i><span>Active Network</span></div>
                                 <div class="flex items-center gap-2 text-gray-400 text-sm"><span>Mainnet</span> <i class="ph ph-caret-right"></i></div>
                             </div>
@@ -419,6 +459,85 @@
     </div>
 
     <script>
+        // --- Fullscreen Logic ---
+        function enterFullscreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => console.log(err));
+            } else if (elem.webkitRequestFullscreen) { /* Safari */
+                elem.webkitRequestFullscreen().catch(err => console.log(err));
+            } else if (elem.msRequestFullscreen) { /* IE11 */
+                elem.msRequestFullscreen().catch(err => console.log(err));
+            }
+        }
+        
+        function exitFullscreen() {
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) { /* Safari */
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) { /* IE11 */
+                    document.msExitFullscreen();
+                }
+            }
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                enterFullscreen();
+            } else {
+                exitFullscreen();
+            }
+        }
+
+        // Listen for fullscreen changes to update the header icon & settings controls
+        document.addEventListener('fullscreenchange', updateFullscreenIcon);
+        document.addEventListener('webkitfullscreenchange', updateFullscreenIcon);
+
+        function updateFullscreenIcon() {
+            const icons = document.querySelectorAll('.fullscreen-icon-sync');
+            const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
+            
+            icons.forEach(icon => {
+                if (isFullscreen) {
+                    icon.classList.replace('ph-corners-out', 'ph-corners-in');
+                } else {
+                    icon.classList.replace('ph-corners-in', 'ph-corners-out');
+                }
+            });
+
+            // Update text status and labels inside Settings dynamically
+            const statusElem = document.getElementById('settings-fullscreen-status');
+            const labelElem = document.getElementById('settings-fullscreen-label');
+            
+            if (statusElem) {
+                statusElem.innerText = isFullscreen ? 'Zmniejsz ekran' : 'Wyłączony';
+            }
+            if (labelElem) {
+                labelElem.innerText = isFullscreen ? 'Opuść pełny ekran' : 'Włącz pełny ekran';
+            }
+        }
+
+        // --- App Start Handlers ---
+        function startAppWithFullscreen() {
+            enterFullscreen();
+            dismissIntroOverlay();
+        }
+
+        function startAppWithoutFullscreen() {
+            dismissIntroOverlay();
+        }
+
+        function dismissIntroOverlay() {
+            const overlay = document.getElementById('intro-overlay');
+            overlay.classList.add('fade-out');
+            // Remove completely after transition to ensure it doesn't block clicks
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 500);
+        }
+
         // Accounts state
         let activeWalletIndex = 0;
         const walletAccounts = [
@@ -730,6 +849,7 @@
         }
 
         function openSettings() {
+            updateFullscreenIcon();
             openModal('settings-modal');
         }
 
@@ -737,7 +857,6 @@
             closeModal('send-modal');
             showToast('Transaction initiated');
         }
-
 
         // Main Router
         function switchTab(tabName) {
