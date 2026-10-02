@@ -102,7 +102,7 @@
         
         <!-- Header -->
         <header class="w-full glass-panel border-b border-gray-800/80 sticky top-0 z-30">
-            <div class="max-w-4xl mx-auto flex justify-between items-center p-4 sm:px-6">
+            <div class="w-full px-4 sm:px-8 lg:px-12 flex justify-between items-center p-4">
                 <!-- Click on Wallet 1 opens the Add Crypto Modal -->
                 <div class="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onclick="openAddCryptoModal()">
                     <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-phantom-purple to-purple-400 flex items-center justify-center shadow-[0_0_12px_rgba(171,159,242,0.4)]">
@@ -130,13 +130,13 @@
         </header>
 
         <!-- Main Scrollable Content -->
-        <main id="main-content" class="flex-1 overflow-y-auto no-scrollbar pb-32 px-4 sm:px-8 max-w-4xl mx-auto w-full">
+        <main id="main-content" class="flex-1 overflow-y-auto no-scrollbar pb-32 px-4 sm:px-8 lg:px-12 w-full">
             <!-- Content will be injected here by JS -->
         </main>
 
         <!-- Bottom Navigation -->
-        <nav class="fixed bottom-0 left-0 right-0 glass-panel border-t border-gray-800/80 pt-2 pb-6 px-6 z-20">
-            <div class="max-w-md mx-auto flex justify-between items-center relative">
+        <nav class="fixed bottom-0 left-0 right-0 glass-panel border-t border-gray-800/80 pt-2 pb-6 px-6 lg:px-12 z-20">
+            <div class="max-w-2xl mx-auto flex justify-between items-center relative">
                 <button onclick="switchTab('home')" class="nav-btn flex flex-col items-center gap-1 text-phantom-purple w-16 transition-transform active:scale-95" data-tab="home">
                     <i class="ph-fill ph-wallet text-2xl"></i>
                 </button>
@@ -791,35 +791,35 @@
 
             let html = `
                 <div class="pt-6 pb-4 flex flex-col items-center animate-fade-in">
-                    <h1 class="text-4xl sm:text-5xl font-bold mb-2 flex items-center gap-3 tracking-tight">
+                    <h1 class="text-4xl sm:text-6xl font-extrabold mb-2 flex items-center gap-3 tracking-tight">
                         ${balanceDisplay}
                         <button onclick="toggleBalance()" class="text-gray-500 hover:text-gray-300 transition-colors"><i class="ph ${eyeIcon} text-2xl"></i></button>
                     </h1>
-                    <div class="bg-phantom-card px-3 py-1 rounded-full text-sm font-medium text-phantom-success flex items-center gap-1 border border-green-500/20">
+                    <div class="bg-phantom-card px-4 py-1.5 rounded-full text-sm font-medium text-phantom-success flex items-center gap-1.5 border border-green-500/20">
                         <i class="ph-fill ph-trend-up"></i> ${changeDisplay}
                     </div>
                 </div>
 
                 <!-- Mini Chart -->
-                <div class="w-full h-32 mb-6 relative px-2">
+                <div class="w-full h-44 sm:h-56 mb-8 relative px-2">
                     <canvas id="portfolioChart"></canvas>
                 </div>
 
                 <!-- Action Buttons row -->
-                <div class="grid grid-cols-4 gap-3 max-w-md mx-auto mb-8">
-                    <button onclick="openModal('receive-modal')" class="flex flex-col items-center justify-center gap-2 bg-phantom-card py-3 rounded-2xl hover:bg-phantom-light transition-colors active:scale-95 border border-gray-800">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-xl mx-auto mb-10">
+                    <button onclick="openModal('receive-modal')" class="flex flex-col items-center justify-center gap-2 bg-phantom-card py-4 rounded-2xl hover:bg-phantom-light transition-colors active:scale-95 border border-gray-800">
                         <div class="text-phantom-purple"><i class="ph ph-arrow-down-left text-2xl"></i></div>
                         <span class="text-xs font-semibold">Receive</span>
                     </button>
-                    <button onclick="openModal('send-modal')" class="flex flex-col items-center justify-center gap-2 bg-phantom-card py-3 rounded-2xl hover:bg-phantom-light transition-colors active:scale-95 border border-gray-800">
+                    <button onclick="openModal('send-modal')" class="flex flex-col items-center justify-center gap-2 bg-phantom-card py-4 rounded-2xl hover:bg-phantom-light transition-colors active:scale-95 border border-gray-800">
                         <div class="text-phantom-purple"><i class="ph ph-arrow-up-right text-2xl"></i></div>
                         <span class="text-xs font-semibold">Send</span>
                     </button>
-                    <button onclick="switchTab('swap')" class="flex flex-col items-center justify-center gap-2 bg-phantom-card py-3 rounded-2xl hover:bg-phantom-light transition-colors active:scale-95 border border-gray-800">
+                    <button onclick="switchTab('swap')" class="flex flex-col items-center justify-center gap-2 bg-phantom-card py-4 rounded-2xl hover:bg-phantom-light transition-colors active:scale-95 border border-gray-800">
                         <div class="text-phantom-purple"><i class="ph ph-arrows-left-right text-2xl"></i></div>
                         <span class="text-xs font-semibold">Swap</span>
                     </button>
-                    <button class="flex flex-col items-center justify-center gap-2 bg-phantom-card py-3 rounded-2xl hover:bg-phantom-light transition-colors active:scale-95 border border-gray-800" onclick="showToast('Symulacja zakupu crypto')">
+                    <button class="flex flex-col items-center justify-center gap-2 bg-phantom-card py-4 rounded-2xl hover:bg-phantom-light transition-colors active:scale-95 border border-gray-800" onclick="showToast('Symulacja zakupu crypto')">
                         <div class="text-phantom-purple"><i class="ph ph-credit-card text-2xl"></i></div>
                         <span class="text-xs font-semibold">Buy</span>
                     </button>
@@ -827,10 +827,10 @@
 
                 <!-- Tokens List -->
                 <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold">Tokens</h2>
+                    <h2 class="text-2xl font-bold">Tokens</h2>
                     <button class="text-gray-400 hover:text-white"><i class="ph ph-sliders-horizontal text-xl"></i></button>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             `;
 
             assets.forEach(asset => {
@@ -843,7 +843,7 @@
                 html += `
                     <div class="bg-phantom-card rounded-3xl p-4 flex items-center justify-between hover:bg-phantom-light cursor-pointer transition-colors border border-gray-800/50 hover:border-gray-700">
                         <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-full bg-black flex items-center justify-center overflow-hidden border border-gray-800">
+                            <div class="w-12 h-12 rounded-full bg-black flex items-center justify-center overflow-hidden border border-gray-800 shrink-0">
                                 <img src="${asset.logo}" alt="${asset.symbol}" class="w-8 h-8 object-contain">
                             </div>
                             <div>
@@ -1032,7 +1032,7 @@
                         <button class="px-4 py-1.5 bg-phantom-card border border-gray-800 text-gray-400 rounded-full text-sm font-medium whitespace-nowrap hover:bg-gray-800">Hidden (2)</button>
                     </div>
 
-                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             `;
 
             nfts.forEach(nft => {
@@ -1065,7 +1065,7 @@
                         <h1 class="text-2xl font-bold">Activity</h1>
                         <button class="text-gray-400 hover:text-white p-2 bg-phantom-card rounded-full"><i class="ph ph-download-simple text-lg"></i></button>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             `;
 
             activity.forEach(item => {
