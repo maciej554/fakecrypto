@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Phantom - Crypto Wallet</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        phantom: {
+                            dark: '#121212',
+                            card: '#222222',
+                            light: '#2A2A2A',
+                            purple: '#AB9FF2',
+                            purpleDark: '#7962D9',
+                            success: '#25D366',
+                            danger: '#FF453A'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'slide-up': 'slideUp 0.3s ease-out',
+                        'fade-in': 'fadeIn 0.2s ease-out',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        slideUp: {
+                            '0%': { transform: 'translateY(100%)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #121212;
+            min-height: 100vh;
+            margin: 0;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* Full screen application container */
+        #app-container {
+            width: 100%;
+            min-height: 100vh;
+            background-color: #121212;
+            position: relative;
+        }
+
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+
+        .glass-panel {
+            background: rgba(18, 18, 18, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(to right, #AB9FF2, #D8B4FE);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app-container" class="flex flex-col min-h-screen text-gray-100">
+        
+        <!-- Header -->
+        <header class="w-full glass-panel border-b border-gray-800/80 sticky top-0 z-30">
+            <div class="max-w-4xl mx-auto flex justify-between items-center p-4 sm:px-6">
+                <!-- Click on Wallet 1 opens the Add Crypto Modal -->
+                <div class="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onclick="openAddCryptoModal()">
+                    <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-phantom-purple to-purple-400 flex items-center justify-center shadow-[0_0_12px_rgba(171,159,242,0.4)]">
+                        <img src="https://cryptologos.cc/logos/phantom-logo.png?v=029" alt="Ghost" class="w-5 h-5 filter brightness-0 invert opacity-80" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <i class="ph ph-ghost text-white text-lg hidden"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-xs text-phantom-purple font-semibold flex items-center gap-1">
+                            <span id="header-wallet-name">Wallet 1</span>
+                        </span>
+                        <div class="flex items-center gap-1">
+                            <span id="header-wallet-addr" class="text-sm font-semibold truncate w-24 sm:w-auto">0x7F...3aB9</span>
+                            <i class="ph ph-caret-down text-xs text-phantom-purple"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex gap-3 items-center">
+                    <button class="text-gray-300 hover:text-white transition-colors p-2 rounded-xl hover:bg-phantom-light" onclick="openAddCryptoModal()"><i class="ph ph-plus-circle text-2xl text-phantom-purple"></i></button>
+                    <button class="text-gray-300 hover:text-white transition-colors relative p-2 rounded-xl hover:bg-phantom-light" onclick="openSettings()">
+                        <i class="ph ph-gear text-2xl"></i>
+                        <span class="absolute top-2 right-2 w-2 h-2 bg-phantom-purple rounded-full animate-pulse-slow"></span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Scrollable Content -->
+        <main id="main-content" class="flex-1 overflow-y-auto no-scrollbar pb-32 px-4 sm:px-8 max-w-4xl mx-auto w-full">
+            <!-- Content will be injected here by JS -->
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="fixed bottom-0 left-0 right-0 glass-panel border-t border-gray-800/80 pt-2 pb-6 px-6 z-20">
+            <div class="max-w-md mx-auto flex justify-between items-center relative">
+                <button onclick="switchTab('home')" class="nav-btn flex flex-col items-center gap-1 text-phantom-purple w-16 transition-transform active:scale-95" data-tab="home">
+                    <i class="ph-fill ph-wallet text-2xl"></i>
+                </button>
+                <button onclick="switchTab('swap')" class="nav-btn flex flex-col items-center gap-1 text-gray-500 hover:text-gray-300 w-16 transition-transform active:scale-95" data-tab="swap">
+                    <i class="ph ph-arrows-left-right text-2xl"></i>
+                </button>
+                <!-- Center Button Action -->
+                <div class="relative -top-5">
+                    <button onclick="openActionMenu()" class="w-14 h-14 bg-phantom-purple rounded-full flex items-center justify-center text-black shadow-[0_4px_20px_rgba(171,159,242,0.4)] transition-transform active:scale-90 hover:scale-105">
+                        <i class="ph ph-plus text-2xl font-bold"></i>
+                    </button>
+                </div>
+                <button onclick="switchTab('nfts')" class="nav-btn flex flex-col items-center gap-1 text-gray-500 hover:text-gray-300 w-16 transition-transform active:scale-95" data-tab="nfts">
+                    <i class="ph ph-squares-four text-2xl"></i>
+                </button>
+                <button onclick="switchTab('activity')" class="nav-btn flex flex-col items-center gap-1 text-gray-500 hover:text-gray-300 w-16 transition-transform active:scale-95" data-tab="activity">
+                    <i class="ph ph-clock-counter-clockwise text-2xl"></i>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Modals / Bottom Sheets -->
+        <!-- Action Menu Overlay -->
+        <div id="action-menu" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex flex-col justify-end items-center animate-fade-in">
+            <div class="bg-phantom-card w-full max-w-xl rounded-t-3xl sm:rounded-3xl sm:mb-8 p-6 pb-12 animate-slide-up border border-gray-700">
+                <div class="w-12 h-1 bg-gray-600 rounded-full mx-auto mb-6 sm:hidden"></div>
+                <div class="grid grid-cols-4 gap-4">
+                    <button onclick="openModal('send-modal')" class="flex flex-col items-center gap-2 group">
+                        <div class="w-14 h-14 rounded-2xl bg-gray-800 flex items-center justify-center text-phantom-purple group-hover:bg-phantom-light transition-colors">
+                            <i class="ph ph-arrow-up-right text-2xl"></i>
+                        </div>
+                        <span class="text-sm font-medium">Send</span>
+                    </button>
+                    <button onclick="openModal('receive-modal')" class="flex flex-col items-center gap-2 group">
+                        <div class="w-14 h-14 rounded-2xl bg-gray-800 flex items-center justify-center text-phantom-purple group-hover:bg-phantom-light transition-colors">
+                            <i class="ph ph-arrow-down-left text-2xl"></i>
+                        </div>
+                        <span class="text-sm font-medium">Receive</span>
+                    </button>
+                    <button onclick="closeActionMenu(); switchTab('swap');" class="flex flex-col items-center gap-2 group">
+                        <div class="w-14 h-14 rounded-2xl bg-gray-800 flex items-center justify-center text-phantom-purple group-hover:bg-phantom-light transition-colors">
+                            <i class="ph ph-arrows-left-right text-2xl"></i>
+                        </div>
+                        <span class="text-sm font-medium">Swap</span>
+                    </button>
+                    <button class="flex flex-col items-center gap-2 group" onclick="showToast('Symulacja zakupu crypto')">
+                        <div class="w-14 h-14 rounded-2xl bg-gray-800 flex items-center justify-center text-phantom-purple group-hover:bg-phantom-light transition-colors">
+                            <i class="ph ph-credit-card text-2xl"></i>
+                        </div>
+                        <span class="text-sm font-medium">Buy</span>
+                    </button>
+                </div>
+                <button onclick="closeActionMenu()" class="mt-8 w-full py-3 rounded-xl bg-gray-800 text-white font-medium hover:bg-gray-700 transition-colors">Cancel</button>
+            </div>
+        </div>
+
+        <!-- Receive Modal -->
+        <div id="receive-modal" class="hidden fixed inset-0 bg-phantom-dark/95 backdrop-blur-md z-40 flex flex-col items-center justify-center animate-slide-up p-4">
+            <div class="w-full max-w-md bg-phantom-card border border-gray-800 rounded-3xl overflow-hidden flex flex-col">
+                <div class="flex justify-between items-center p-5 border-b border-gray-800">
+                    <button onclick="closeModal('receive-modal')" class="text-gray-400 hover:text-white"><i class="ph ph-x text-2xl"></i></button>
+                    <h2 class="font-semibold text-lg">Receive</h2>
+                    <div class="w-6"></div>
+                </div>
+                <div class="flex flex-col items-center p-6">
+                    <div class="bg-white p-4 rounded-3xl mb-6 shadow-[0_0_30px_rgba(171,159,242,0.2)]">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=0x7F4B92e13aB9837d45F2&bgcolor=FFFFFF&color=000000" alt="QR Code" class="rounded-xl w-44 h-44">
+                    </div>
+                    <p class="text-gray-400 text-sm mb-2 text-center">Your Solana Address</p>
+                    <div class="bg-phantom-dark px-4 py-3 rounded-xl flex items-center gap-3 w-full mb-6 border border-gray-800">
+                        <span class="text-sm text-gray-300 font-mono truncate flex-1">0x7F4B92e1...3aB9837d45F2</span>
+                        <button onclick="copyToClipboard('0x7F4B92e13aB9837d45F2')" class="text-phantom-purple hover:text-white"><i class="ph ph-copy text-xl"></i></button>
+                    </div>
+                    <div class="w-full flex gap-3">
+                        <button class="flex-1 py-3.5 bg-phantom-light rounded-2xl font-semibold flex items-center justify-center gap-2 hover:bg-gray-700 transition-colors text-sm">
+                            <i class="ph ph-share-network text-lg"></i> Share
+                        </button>
+                        <button class="flex-1 py-3.5 bg-phantom-purple text-black rounded-2xl font-semibold hover:opacity-90 transition-opacity text-sm" onclick="copyToClipboard('0x7F4B92e13aB9837d45F2')">
+                            Copy Address
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Send Modal -->
+        <div id="send-modal" class="hidden fixed inset-0 bg-phantom-dark/95 backdrop-blur-md z-40 flex flex-col items-center justify-center animate-slide-up p-4">
+            <div class="w-full max-w-md bg-phantom-card border border-gray-800 rounded-3xl overflow-hidden flex flex-col">
+                <div class="flex justify-between items-center p-5 border-b border-gray-800">
+                    <button onclick="closeModal('send-modal')" class="text-gray-400 hover:text-white"><i class="ph ph-arrow-left text-2xl"></i></button>
+                    <h2 class="font-semibold text-lg">Send Solana</h2>
+                    <div class="w-6"></div>
+                </div>
+                <div class="p-5 flex flex-col gap-5">
+                    <div>
+                        <label class="text-sm text-gray-400 mb-2 block">To</label>
+                        <div class="bg-phantom-dark p-4 rounded-2xl flex items-center gap-3 border border-gray-800 focus-within:border-phantom-purple transition-colors">
+                            <input type="text" placeholder="Search or enter address..." class="bg-transparent border-none outline-none w-full text-white placeholder-gray-500">
+                            <i class="ph ph-scan text-phantom-purple text-xl cursor-pointer"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-400 mb-2 flex justify-between">
+                            <span>Amount</span>
+                            <span>Max: 124.50 SOL</span>
+                        </label>
+                        <div class="bg-phantom-dark p-4 rounded-2xl flex items-center gap-3 border border-gray-800 focus-within:border-phantom-purple transition-colors">
+                            <div class="w-8 h-8 rounded-full bg-black flex items-center justify-center overflow-hidden">
+                                 <img src="https://cryptologos.cc/logos/solana-sol-logo.png" class="w-full h-full object-cover">
+                            </div>
+                            <input type="number" placeholder="0.00" class="bg-transparent border-none outline-none w-full text-2xl font-semibold text-white placeholder-gray-600">
+                            <span class="text-gray-400 font-semibold">SOL</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-sm text-gray-400 mb-4 px-1">
+                            <span>Network Fee</span>
+                            <span>~0.000005 SOL</span>
+                        </div>
+                        <button class="w-full py-4 bg-phantom-purple text-black rounded-2xl font-bold text-lg hover:opacity-90 transition-opacity shadow-[0_0_20px_rgba(171,159,242,0.3)]" onclick="confirmSend()">Next</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="hidden fixed inset-0 bg-phantom-dark/95 backdrop-blur-md z-50 flex flex-col items-center justify-start animate-slide-up p-4 overflow-y-auto">
+            <div class="w-full max-w-lg my-auto bg-phantom-card border border-gray-800 rounded-3xl overflow-hidden flex flex-col">
+                <div class="flex items-center p-5 border-b border-gray-800 bg-phantom-card sticky top-0 z-10">
+                    <button onclick="closeModal('settings-modal')" class="text-gray-400 hover:text-white mr-4"><i class="ph ph-arrow-left text-2xl"></i></button>
+                    <h2 class="font-semibold text-xl">Settings</h2>
+                </div>
+                <div class="p-5 space-y-6">
+                    
+                    <div class="bg-phantom-dark rounded-2xl p-4 border border-gray-800 flex items-center gap-4">
+                         <div class="w-14 h-14 rounded-full bg-gradient-to-tr from-phantom-purple to-purple-400 flex items-center justify-center">
+                            <i class="ph ph-ghost text-white text-3xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg">Wallet 1</h3>
+                            <p class="text-gray-400 text-sm">Main Account</p>
+                        </div>
+                        <button class="ml-auto text-phantom-purple bg-phantom-light p-2 rounded-xl"><i class="ph ph-pencil-simple"></i></button>
+                    </div>
+
+                    <div>
+                        <h4 class="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-3 px-1">Security</h4>
+                        <div class="bg-phantom-dark rounded-2xl overflow-hidden border border-gray-800">
+                            <div class="flex items-center justify-between p-4 border-b border-gray-800 hover:bg-phantom-light cursor-pointer transition-colors">
+                                <div class="flex items-center gap-3"><i class="ph ph-lock-key text-xl text-gray-400"></i><span>Auto-Lock</span></div>
+                                <div class="flex items-center gap-2 text-gray-400 text-sm"><span>Immediately</span> <i class="ph ph-caret-right"></i></div>
+                            </div>
+                            <div class="flex items-center justify-between p-4 border-b border-gray-800 hover:bg-phantom-light cursor-pointer transition-colors">
+                                <div class="flex items-center gap-3"><i class="ph ph-fingerprint text-xl text-gray-400"></i><span>Biometrics</span></div>
+                                <div class="w-12 h-6 bg-phantom-purple rounded-full relative cursor-pointer">
+                                    <div class="w-5 h-5 bg-white rounded-full absolute top-0.5 right-0.5 shadow-sm"></div>
+                                </div>
+                            </div>
+                             <div class="flex items-center justify-between p-4 hover:bg-phantom-light cursor-pointer transition-colors">
+                                <div class="flex items-center gap-3"><i class="ph ph-key text-xl text-phantom-danger"></i><span class="text-phantom-danger">Show Secret Phrase</span></div>
+                                <i class="ph ph-caret-right text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-3 px-1">Preferences</h4>
+                        <div class="bg-phantom-dark rounded-2xl overflow-hidden border border-gray-800">
+                            <div class="flex items-center justify-between p-4 border-b border-gray-800 hover:bg-phantom-light cursor-pointer transition-colors">
+                                <div class="flex items-center gap-3"><i class="ph ph-currency-dollar text-xl text-gray-400"></i><span>Display Currency</span></div>
+                                <div class="flex items-center gap-2 text-gray-400 text-sm"><span>USD</span> <i class="ph ph-caret-right"></i></div>
+                            </div>
+                             <div class="flex items-center justify-between p-4 border-b border-gray-800 hover:bg-phantom-light cursor-pointer transition-colors">
+                                <div class="flex items-center gap-3"><i class="ph ph-globe text-xl text-gray-400"></i><span>Active Network</span></div>
+                                <div class="flex items-center gap-2 text-gray-400 text-sm"><span>Mainnet</span> <i class="ph ph-caret-right"></i></div>
+                            </div>
+                            <div class="flex items-center justify-between p-4 hover:bg-phantom-light cursor-pointer transition-colors">
+                                <div class="flex items-center gap-3"><i class="ph ph-moon text-xl text-gray-400"></i><span>Theme</span></div>
+                                <div class="flex items-center gap-2 text-gray-400 text-sm"><span>Dark</span> <i class="ph ph-caret-right"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center pt-2 pb-1">
+                        <p class="text-gray-600 text-xs">Phantom v2.4.1 (Mockup)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Cryptocurrencies & Manage Assets Modal -->
+        <div id="add-crypto-modal" class="hidden fixed inset-0 bg-phantom-dark/95 backdrop-blur-md z-50 flex flex-col items-center justify-center animate-slide-up p-4 overflow-y-auto">
+            <div class="w-full max-w-lg my-auto bg-phantom-card border border-gray-800 rounded-3xl overflow-hidden flex flex-col max-h-[90vh]">
+                <!-- Modal Header -->
+                <div class="flex items-center justify-between p-5 border-b border-gray-800 bg-phantom-card sticky top-0 z-10">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-phantom-purple/20 flex items-center justify-center text-phantom-purple font-bold">
+                            <i class="ph ph-coins text-2xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="font-bold text-lg text-white">Dodaj Kryptowaluty</h2>
+                            <p class="text-xs text-gray-400" id="current-wallet-label">Wybrane konto: Wallet 1</p>
+                        </div>
+                    </div>
+                    <button onclick="closeModal('add-crypto-modal')" class="text-gray-400 hover:text-white p-2 rounded-xl hover:bg-phantom-light">
+                        <i class="ph ph-x text-2xl"></i>
+                    </button>
+                </div>
+
+                <!-- Modal Body with Scroll -->
+                <div class="p-5 overflow-y-auto space-y-6 no-scrollbar">
+                    
+                    <!-- Wallet Switcher Section -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2.5">
+                            <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Moje Portfele</span>
+                            <button onclick="addNewWalletAccount()" class="text-xs text-phantom-purple hover:underline flex items-center gap-1 font-medium">
+                                <i class="ph ph-plus-circle"></i> Stwórz nowy portfel
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2" id="wallet-accounts-list">
+                            <!-- Injected dynamically in JS -->
+                        </div>
+                    </div>
+
+                    <!-- Search & Filter Tokens -->
+                    <div>
+                        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 block">Dostępne Monety i Tokeny</span>
+                        <div class="bg-phantom-dark p-3 rounded-2xl flex items-center gap-3 border border-gray-800 focus-within:border-phantom-purple transition-colors mb-3">
+                            <i class="ph ph-magnifying-glass text-gray-400 text-lg"></i>
+                            <input type="text" id="token-search-input" oninput="filterCryptoTokens(this.value)" placeholder="Szukaj (np. SOL, BTC, BONK, USDT)..." class="bg-transparent border-none outline-none w-full text-sm text-white placeholder-gray-500">
+                        </div>
+
+                        <!-- Token List with Toggle Switches -->
+                        <div class="space-y-2 max-h-56 overflow-y-auto pr-1 no-scrollbar" id="manage-tokens-list">
+                            <!-- Token items dynamically rendered -->
+                        </div>
+                    </div>
+
+                    <!-- Custom Token Import Section -->
+                    <div class="bg-phantom-dark/80 rounded-2xl p-4 border border-gray-800">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="text-sm font-semibold text-white flex items-center gap-2">
+                                <i class="ph ph-plus-square text-phantom-purple"></i> Dodaj Własną Kryptowalutę
+                            </h4>
+                            <button onclick="addQuickRandomToken()" class="text-xs bg-phantom-purple/20 text-phantom-purple px-2.5 py-1 rounded-lg hover:bg-phantom-purple/30 transition-colors font-medium flex items-center gap-1">
+                                <i class="ph ph-sparkle"></i> Szybki token
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-400 mb-3">Podaj parametry lub skorzystaj z szybkiego dodawania. Możesz dodawać nieograniczoną liczbę kryptowalut.</p>
+                        
+                        <form onsubmit="handleCustomTokenAdd(event)" class="space-y-3">
+                            <div>
+                                <input type="text" id="custom-token-address" required placeholder="Adres kontraktu (np. 0x7F4B...)" class="w-full bg-phantom-card text-sm text-white p-3 rounded-xl border border-gray-800 outline-none focus:border-phantom-purple transition-colors">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="text" id="custom-token-symbol" required placeholder="Symbol (np. BONK)" class="w-full bg-phantom-card text-sm text-white p-3 rounded-xl border border-gray-800 outline-none focus:border-phantom-purple transition-colors">
+                                <input type="text" id="custom-token-name" required placeholder="Nazwa (np. Bonk Coin)" class="w-full bg-phantom-card text-sm text-white p-3 rounded-xl border border-gray-800 outline-none focus:border-phantom-purple transition-colors">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="number" step="any" id="custom-token-balance" placeholder="Ilość (np. 1000)" class="w-full bg-phantom-card text-sm text-white p-3 rounded-xl border border-gray-800 outline-none focus:border-phantom-purple transition-colors">
+                                <input type="number" step="any" id="custom-token-price" placeholder="Cena USD (np. 1.25)" class="w-full bg-phantom-card text-sm text-white p-3 rounded-xl border border-gray-800 outline-none focus:border-phantom-purple transition-colors">
+                            </div>
+                            <button type="submit" class="w-full py-3 bg-phantom-purple text-black font-semibold text-sm rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(171,159,242,0.3)]">
+                                <i class="ph ph-plus-bold"></i> Dodaj Kryptowalutę
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Toast -->
+        <div id="toast" class="fixed top-6 left-1/2 transform -translate-x-1/2 bg-phantom-card border border-phantom-purple text-white px-6 py-3 rounded-full shadow-2xl transition-all duration-300 opacity-0 translate-y-[-20px] pointer-events-none z-50 flex items-center gap-2">
+            <i class="ph-fill ph-check-circle text-phantom-success"></i>
+            <span id="toast-msg" class="font-medium text-sm">Action completed</span>
+        </div>
+
+    </div>
+
+    <script>
+        // Accounts state
+        let activeWalletIndex = 0;
+        const walletAccounts = [
+            { name: 'Wallet 1', address: '0x7F4B92e13aB9837d45F2' },
+            { name: 'Wallet 2', address: '0x9A12C3d45e6789F01234' }
+        ];
+
+        // Master catalog of all supported tokens
+        let tokenCatalog = [
+            { id: 'sol', name: 'Solana', symbol: 'SOL', balance: 124.50, price: 145.20, change: 5.4, logo: 'https://cryptologos.cc/logos/solana-sol-logo.png', active: true },
+            { id: 'btc', name: 'Bitcoin', symbol: 'BTC', balance: 0.045, price: 64200.00, change: -1.2, logo: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png', active: true },
+            { id: 'eth', name: 'Ethereum', symbol: 'ETH', balance: 1.2, price: 3450.10, change: 2.1, logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png', active: true },
+            { id: 'jup', name: 'Jupiter', symbol: 'JUP', balance: 1500.00, price: 1.15, change: 12.5, logo: 'https://cryptologos.cc/logos/jupiter-ag-jup-logo.png', active: true },
+            { id: 'usdc', name: 'USD Coin', symbol: 'USDC', balance: 450.00, price: 1.00, change: 0.0, logo: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png', active: true },
+            { id: 'usdt', name: 'Tether USD', symbol: 'USDT', balance: 320.00, price: 1.00, change: 0.01, logo: 'https://cryptologos.cc/logos/tether-usdt-logo.png', active: false },
+            { id: 'bonk', name: 'Bonk', symbol: 'BONK', balance: 5000000, price: 0.000024, change: 14.8, logo: 'https://cryptologos.cc/logos/bonk-bonk-logo.png', active: false },
+            { id: 'ray', name: 'Raydium', symbol: 'RAY', balance: 120.0, price: 1.85, change: -2.3, logo: 'https://cryptologos.cc/logos/raydium-ray-logo.png', active: false }
+        ];
+
+        // Dynamic assets derived from active tokens in catalog
+        let assets = [];
+
+        function updateAssetsList() {
+            assets = tokenCatalog.filter(token => token.active);
+            recalculateTotalBalance();
+        }
+
+        const userData = {
+            totalBalance: 0,
+            hidden: false,
+            change24h: 1240.50,
+            changePercent: 5.3
+        };
+
+        function recalculateTotalBalance() {
+            userData.totalBalance = assets.reduce((sum, token) => sum + (token.balance * token.price), 0);
+        }
+
+        // Compute initial balance immediately on script evaluation
+        updateAssetsList();
+
+        const nfts = [
+            { id: 1, name: 'Mad Lads #842', collection: 'Mad Lads', image: 'https://i.seadn.io/s/raw/files/4d2cb378de19b21ea89f3ad188ce6ef1.png?auto=format&dpr=1&w=384', floor: '120 SOL' },
+            { id: 2, name: 'Claynosaurz #112', collection: 'Claynosaurz', image: 'https://i.seadn.io/s/raw/files/c2557e04040ffccebb7b7c2b6477eeb0.gif?auto=format&dpr=1&w=384', floor: '35 SOL' },
+            { id: 3, name: 'Tensorian #55', collection: 'Tensorians', image: 'https://i.seadn.io/s/raw/files/8b3b4f620bd2b9a7be8e1b659c235a90.png?auto=format&dpr=1&w=384', floor: '40 SOL' },
+            { id: 4, name: 'Okay Bear #99', collection: 'Okay Bears', image: 'https://i.seadn.io/gcs/files/6f2e022f4684cb3229bbf7898d281a8c.png?auto=format&dpr=1&w=384', floor: '15 SOL' }
+        ];
+
+        const activity = [
+            { type: 'receive', asset: 'SOL', amount: 5.0, address: '0x3F...9A1', date: 'Today, 14:30', status: 'Completed', icon: 'ph-arrow-down-left', color: 'text-phantom-success', bg: 'bg-green-500/10' },
+            { type: 'swap', asset: 'USDC', amount: 500, details: 'Swapped SOL to USDC', date: 'Yesterday, 09:15', status: 'Completed', icon: 'ph-arrows-left-right', color: 'text-phantom-purple', bg: 'bg-purple-500/10' },
+            { type: 'send', asset: 'BTC', amount: 0.01, address: 'bc1q...x2y', date: 'Oct 24, 18:45', status: 'Completed', icon: 'ph-arrow-up-right', color: 'text-gray-400', bg: 'bg-gray-700' },
+            { type: 'mint', asset: 'NFT', details: 'Minted Mad Lads', date: 'Oct 20, 11:00', status: 'Completed', icon: 'ph-magic-wand', color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
+        ];
+
+        let currentChart = null;
+
+        // Add / Manage Cryptocurrencies Logic
+        function openAddCryptoModal() {
+            renderWalletAccountsList();
+            renderManageTokensList();
+            openModal('add-crypto-modal');
+        }
+
+        function renderWalletAccountsList() {
+            const container = document.getElementById('wallet-accounts-list');
+            if(!container) return;
+            
+            container.innerHTML = walletAccounts.map((wallet, idx) => {
+                const isActive = idx === activeWalletIndex;
+                return `
+                    <div onclick="switchWalletAccount(${idx})" class="p-3 rounded-2xl border cursor-pointer transition-all flex flex-col gap-1 ${isActive ? 'bg-phantom-purple/15 border-phantom-purple text-white' : 'bg-phantom-dark border-gray-800 text-gray-400 hover:border-gray-700'}">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-sm text-white">${wallet.name}</span>
+                            ${isActive ? '<i class="ph-fill ph-check-circle text-phantom-purple text-base"></i>' : ''}
+                        </div>
+                        <span class="text-xs font-mono opacity-80 truncate">${wallet.address.slice(0, 6)}...${wallet.address.slice(-4)}</span>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('current-wallet-label').innerText = `Wybrane konto: ${walletAccounts[activeWalletIndex].name}`;
+        }
+
+        function switchWalletAccount(index) {
+            activeWalletIndex = index;
+            const wallet = walletAccounts[index];
+            document.getElementById('header-wallet-name').innerText = wallet.name;
+            document.getElementById('header-wallet-addr').innerText = `${wallet.address.slice(0, 4)}...${wallet.address.slice(-4)}`;
+            renderWalletAccountsList();
+            showToast(`Przełączono na ${wallet.name}`);
+        }
+
+        function addNewWalletAccount() {
+            const newNum = walletAccounts.length + 1;
+            const newWallet = {
+                name: `Wallet ${newNum}`,
+                address: `0x${Math.random().toString(16).substring(2, 10)}...${Math.random().toString(16).substring(2, 6)}`
+            };
+            walletAccounts.push(newWallet);
+            switchWalletAccount(walletAccounts.length - 1);
+            showToast(`Dodano nowy portfel: Wallet ${newNum}`);
+        }
+
+        function renderManageTokensList(filterTerm = '') {
+            const container = document.getElementById('manage-tokens-list');
+            if(!container) return;
+
+            const filtered = tokenCatalog.filter(t => 
+                t.name.toLowerCase().includes(filterTerm.toLowerCase()) || 
+                t.symbol.toLowerCase().includes(filterTerm.toLowerCase())
+            );
+
+            if(filtered.length === 0) {
+                container.innerHTML = `<div class="text-center text-gray-500 py-4 text-sm">Nie znaleziono pasujących tokenów</div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(token => {
+                return `
+                    <div class="flex flex-col gap-3 p-3 bg-phantom-dark rounded-2xl border border-gray-800/80 hover:border-gray-700 transition-colors">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-black flex items-center justify-center overflow-hidden border border-gray-800 shrink-0">
+                                    <img src="${token.logo}" alt="${token.symbol}" class="w-6 h-6 object-contain" onerror="this.src='https://placehold.co/100/121212/AB9FF2?text=${token.symbol}'">
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm leading-tight text-white">${token.name}</h4>
+                                    <span class="text-xs text-gray-400 font-medium">${token.symbol} • ${formatCurrency(token.price)}</span>
+                                </div>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer shrink-0" title="Pokaż / Ukryj w portfelu">
+                                <input type="checkbox" class="sr-only peer" ${token.active ? 'checked' : ''} onchange="toggleTokenActive('${token.id}')">
+                                <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-phantom-purple"></div>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between bg-black/40 rounded-xl p-2 border border-gray-800/80">
+                            <span class="text-xs text-gray-400 pl-2">Twoje saldo:</span>
+                            <div class="flex items-center gap-2">
+                                <input type="number" step="any" min="0" value="${token.balance}" oninput="updateTokenBalance('${token.id}', this.value)" class="w-24 bg-gray-800 border border-gray-700 focus:border-phantom-purple outline-none text-right text-sm text-white font-mono p-1.5 rounded-lg transition-colors" placeholder="0">
+                                ${token.isCustom ? `<button onclick="deleteCustomToken('${token.id}')" class="text-phantom-danger hover:bg-red-500/10 p-1.5 rounded-lg transition-colors" title="Usuń token"><i class="ph ph-trash text-lg"></i></button>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterCryptoTokens(query) {
+            renderManageTokensList(query);
+        }
+
+        function toggleTokenActive(tokenId) {
+            const token = tokenCatalog.find(t => t.id === tokenId);
+            if(token) {
+                token.active = !token.active;
+                updateAssetsList();
+                renderHome(); // Re-render main view
+                showToast(token.active ? `Dodano ${token.symbol} do portfela` : `Ukryto ${token.symbol}`);
+            }
+        }
+
+        function updateTokenBalance(tokenId, newValue) {
+            const token = tokenCatalog.find(t => t.id === tokenId);
+            if(token) {
+                const val = parseFloat(newValue);
+                token.balance = isNaN(val) ? 0 : val;
+                updateAssetsList();
+                renderHome();
+            }
+        }
+
+        function handleCustomTokenAdd(event) {
+            event.preventDefault();
+            const symbol = document.getElementById('custom-token-symbol').value.trim().toUpperCase();
+            const name = document.getElementById('custom-token-name').value.trim();
+            const balance = parseFloat(document.getElementById('custom-token-balance').value) || 0;
+            const price = parseFloat(document.getElementById('custom-token-price').value) || 1.0;
+
+            const newToken = {
+                id: `custom_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+                name: name || symbol,
+                symbol: symbol,
+                balance: balance,
+                price: price,
+                change: parseFloat((Math.random() * 20 - 5).toFixed(1)),
+                logo: `https://placehold.co/100/121212/AB9FF2?text=${symbol}`,
+                active: true,
+                isCustom: true
+            };
+
+            tokenCatalog.unshift(newToken);
+            updateAssetsList();
+            renderHome();
+            renderManageTokensList();
+
+            // Clear inputs
+            document.getElementById('custom-token-address').value = '';
+            document.getElementById('custom-token-symbol').value = '';
+            document.getElementById('custom-token-name').value = '';
+            document.getElementById('custom-token-balance').value = '';
+            document.getElementById('custom-token-price').value = '';
+
+            showToast(`Pomyślnie dodano token ${symbol}!`);
+        }
+
+        function addQuickRandomToken() {
+            const presets = [
+                { name: 'Pepe Coin', symbol: 'PEPE', price: 0.000008, bal: 12500000 },
+                { name: 'Dogecoin', symbol: 'DOGE', price: 0.12, bal: 2500 },
+                { name: 'Shiba Inu', symbol: 'SHIB', price: 0.000018, bal: 8000000 },
+                { name: 'Avalanche', symbol: 'AVAX', price: 28.50, bal: 15 },
+                { name: 'Polkadot', symbol: 'DOT', price: 4.80, bal: 120 },
+                { name: 'Chainlink', symbol: 'LINK', price: 11.20, bal: 45 },
+                { name: 'Cardano', symbol: 'ADA', price: 0.38, bal: 850 },
+                { name: 'Render Token', symbol: 'RENDER', price: 6.10, bal: 200 },
+                { name: 'Sui Network', symbol: 'SUI', price: 1.85, bal: 600 },
+                { name: 'Near Protocol', symbol: 'NEAR', price: 4.90, bal: 180 },
+                { name: 'Arbitrum', symbol: 'ARB', price: 0.55, bal: 1100 },
+                { name: 'Aptos', symbol: 'APT', price: 8.40, bal: 90 },
+                { name: 'Worldcoin', symbol: 'WLD', price: 2.10, bal: 350 },
+                { name: 'Pyth Network', symbol: 'PYTH', price: 0.32, bal: 3000 }
+            ];
+
+            const randomPreset = presets[Math.floor(Math.random() * presets.length)];
+            const newToken = {
+                id: `token_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+                name: randomPreset.name,
+                symbol: randomPreset.symbol,
+                balance: randomPreset.bal,
+                price: randomPreset.price,
+                change: parseFloat((Math.random() * 30 - 10).toFixed(1)),
+                logo: `https://placehold.co/100/121212/AB9FF2?text=${randomPreset.symbol}`,
+                active: true,
+                isCustom: true
+            };
+
+            tokenCatalog.unshift(newToken);
+            updateAssetsList();
+            renderHome();
+            renderManageTokensList();
+            showToast(`Dodano ${randomPreset.name} (${randomPreset.symbol})!`);
+        }
+
+        function deleteCustomToken(tokenId) {
+            tokenCatalog = tokenCatalog.filter(t => t.id !== tokenId);
+            updateAssetsList();
+            renderHome();
+            renderManageTokensList();
+            showToast('Usunięto token');
+        }
+
+        // Utilities
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+        }
+
+        function formatNumber(value, decimals = 2) {
+             return parseFloat(value).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+        }
+
+        function toggleBalance() {
+            userData.hidden = !userData.hidden;
+            renderHome(); // Re-render to update UI
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = message;
+            toast.classList.remove('opacity-0', 'translate-y-[-20px]');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            
+            // Haptic feedback simulation
+            if (navigator.vibrate) navigator.vibrate(50);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-[-20px]');
+                toast.classList.remove('opacity-100', 'translate-y-0');
+            }, 3000);
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Address copied to clipboard');
+            });
+        }
+
+        // Modals
+        function openActionMenu() {
+            document.getElementById('action-menu').classList.remove('hidden');
+            document.getElementById('action-menu').classList.add('flex');
+            if (navigator.vibrate) navigator.vibrate(10);
+        }
+
+        function closeActionMenu() {
+            document.getElementById('action-menu').classList.add('hidden');
+            document.getElementById('action-menu').classList.remove('flex');
+        }
+
+        function openModal(id) {
+            closeActionMenu();
+            document.getElementById(id).classList.remove('hidden');
+            document.getElementById(id).classList.add('flex');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+            document.getElementById(id).classList.remove('flex');
+        }
+
+        function openSettings() {
+            openModal('settings-modal');
+        }
+
+        function confirmSend() {
+            closeModal('send-modal');
+            showToast('Transaction initiated');
+        }
+
+
+        // Main Router
+        function switchTab(tabName) {
+            // Update Nav UI
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                const icon = btn.querySelector('i');
+                if (btn.dataset.tab === tabName) {
+                    btn.classList.add('text-phantom-purple');
+                    btn.classList.remove('text-gray-500');
+                    // Change to filled icon if applicable
+                    if(icon.classList.contains('ph')) {
+                        icon.classList.remove('ph');
+                        icon.classList.add('ph-fill');
+                    }
+                } else {
+                    btn.classList.remove('text-phantom-purple');
+                    btn.classList.add('text-gray-500');
+                    // Change to outline icon
+                    if(icon.classList.contains('ph-fill')) {
+                        icon.classList.remove('ph-fill');
+                        icon.classList.add('ph');
+                    }
+                }
+            });
+
+            const mainContent = document.getElementById('main-content');
+            mainContent.innerHTML = ''; // Clear current
+            
+            // Subtle transition
+            mainContent.classList.add('opacity-0');
+            
+            setTimeout(() => {
+                switch(tabName) {
+                    case 'home': renderHome(); break;
+                    case 'swap': renderSwap(); break;
+                    case 'nfts': renderNFTs(); break;
+                    case 'activity': renderActivity(); break;
+                }
+                mainContent.classList.remove('opacity-0');
+                mainContent.classList.add('transition-opacity', 'duration-300');
+            }, 50);
+        }
+
+        // --- Render Home (Assets) ---
+        function renderHome() {
+            const main = document.getElementById('main-content');
+            
+            const balanceDisplay = userData.hidden ? '****' : formatCurrency(userData.totalBalance);
+            const changeDisplay = userData.hidden ? '***' : `+${formatCurrency(userData.change24h)} (${userData.changePercent}%)`;
+            const eyeIcon = userData.hidden ? 'ph-eye-closed' : 'ph-eye';
+
+            let html = `
+                <div class="pt-6 pb-4 flex flex-col items-center animate-fade-in">
+                    <h1 class="text-4xl sm:text-5xl font-bold mb-2 flex items-center gap-3 tracking-tight">
+                        ${balanceDisplay}
+                        <button onclick="toggleBalance()" class="text-gray-500 hover:text-gray-300 transition-colors"><i class="ph ${eyeIcon} text-2xl"></i></button>
+                    </h1>
+                    <div class="bg-phantom-card px-3 py-1 rounded-full text-sm font-medium text-phantom-success flex items-center gap-1 border border-green-500/20">
+                        <i class="ph-fill ph-trend-up"></i> ${changeDisplay}
+                    </div>
+                </div>
+
+                <!-- Mini Chart -->
+                <div class="w-full h-32 mb-6 relative px-2">
+                    <canvas id="portfolioChart"></canvas>
+                </div>
+
+                <!-- Action Buttons row -->
+                <div class="grid grid-cols-4 gap-3 max-w-md mx-auto mb-8">
+                    <button onclick="openModal('receive-modal')" class="flex flex-col items-center justify-center gap-2 bg-phantom-card py-3 rounded-2xl hover:bg-phantom-light transition-colors active:scale-95 border border-gray-800">
+                        <div class="text-phantom-purple"><i class="ph ph-arrow-down-left text-2xl"></i></div>
+                        <span class="text-xs font-semibold">Receive</span>
+                    </button>
+                    <button onclick="openModal('send-modal')" class="flex flex-col items-center justify-center gap-2 bg-phantom-card py-3 rounded-2xl hover:bg-phantom-light transition-colors active:scale-95 border border-gray-800">
+                        <div class="text-phantom-purple"><i class="ph ph-arrow-up-right text-2xl"></i></div>
+                        <span class="text-xs font-semibold">Send</span>
+                    </button>
+                    <button onclick="switchTab('swap')" class="flex flex-col items-center justify-center gap-2 bg-phantom-card py-3 rounded-2xl hover:bg-phantom-light transition-colors active:scale-95 border border-gray-800">
+                        <div class="text-phantom-purple"><i class="ph ph-arrows-left-right text-2xl"></i></div>
+                        <span class="text-xs font-semibold">Swap</span>
+                    </button>
+                    <button class="flex flex-col items-center justify-center gap-2 bg-phantom-card py-3 rounded-2xl hover:bg-phantom-light transition-colors active:scale-95 border border-gray-800" onclick="showToast('Symulacja zakupu crypto')">
+                        <div class="text-phantom-purple"><i class="ph ph-credit-card text-2xl"></i></div>
+                        <span class="text-xs font-semibold">Buy</span>
+                    </button>
+                </div>
+
+                <!-- Tokens List -->
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold">Tokens</h2>
+                    <button class="text-gray-400 hover:text-white"><i class="ph ph-sliders-horizontal text-xl"></i></button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            `;
+
+            assets.forEach(asset => {
+                const assetValue = asset.balance * asset.price;
+                const valueDisplay = userData.hidden ? '****' : formatCurrency(assetValue);
+                const balDisplay = userData.hidden ? '***' : formatNumber(asset.balance, 4);
+                const isPositive = asset.change >= 0;
+                const changeClass = isPositive ? 'text-phantom-success' : 'text-phantom-danger';
+                
+                html += `
+                    <div class="bg-phantom-card rounded-3xl p-4 flex items-center justify-between hover:bg-phantom-light cursor-pointer transition-colors border border-gray-800/50 hover:border-gray-700">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-full bg-black flex items-center justify-center overflow-hidden border border-gray-800">
+                                <img src="${asset.logo}" alt="${asset.symbol}" class="w-8 h-8 object-contain">
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-[17px] leading-tight">${asset.name}</h3>
+                                <div class="text-sm text-gray-400 mt-0.5 flex gap-2">
+                                    <span>${balDisplay} ${asset.symbol}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-bold text-[17px] leading-tight">${valueDisplay}</div>
+                            <div class="text-sm ${changeClass} mt-0.5 font-medium">
+                                ${isPositive ? '+' : ''}${asset.change}%
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+            main.innerHTML = html;
+
+            // Initialize Chart after injecting HTML
+            initChart();
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('portfolioChart');
+            if(!ctx) return;
+            
+            if(currentChart) currentChart.destroy();
+
+            // Fake chart data showing upward trend
+            const data = [18000, 18500, 19200, 18800, 20500, 22000, 24562];
+            
+            Chart.defaults.color = '#71717a';
+            Chart.defaults.font.family = 'Inter';
+
+            currentChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
+                    datasets: [{
+                        data: data,
+                        borderColor: '#AB9FF2',
+                        borderWidth: 3,
+                        tension: 0.4, // smooth curve
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        pointHoverBackgroundColor: '#AB9FF2',
+                        pointHoverBorderColor: '#fff',
+                        pointHoverBorderWidth: 2,
+                        fill: true,
+                        backgroundColor: (context) => {
+                            const chart = context.chart;
+                            const {ctx, chartArea} = chart;
+                            if (!chartArea) return null;
+                            const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                            gradient.addColorStop(0, 'rgba(171, 159, 242, 0.2)');
+                            gradient.addColorStop(1, 'rgba(171, 159, 242, 0)');
+                            return gradient;
+                        }
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: '#222',
+                            titleColor: '#fff',
+                            bodyColor: '#AB9FF2',
+                            borderColor: '#333',
+                            borderWidth: 1,
+                            padding: 10,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return formatCurrency(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { display: false },
+                        y: { display: false, min: 17000 }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+        }
+
+        // --- Render Swap ---
+        function renderSwap() {
+            const main = document.getElementById('main-content');
+            main.innerHTML = `
+                <div class="pt-6 pb-4 max-w-xl mx-auto animate-fade-in">
+                    <div class="flex justify-between items-center mb-6">
+                        <h1 class="text-2xl font-bold">Swap</h1>
+                        <button class="text-gray-400 hover:text-white p-2 bg-phantom-card rounded-full"><i class="ph ph-sliders-horizontal text-lg"></i></button>
+                    </div>
+
+                    <div class="relative">
+                        <!-- You Pay Box -->
+                        <div class="bg-phantom-card rounded-3xl p-5 mb-2 border border-gray-800">
+                            <div class="text-sm text-gray-400 mb-3 flex justify-between">
+                                <span>You Pay</span>
+                                <span>Balance: 124.50</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <input type="number" value="10" class="bg-transparent border-none outline-none text-3xl font-bold w-1/2 text-white" placeholder="0">
+                                <button class="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 py-2 px-3 rounded-full transition-colors">
+                                    <img src="https://cryptologos.cc/logos/solana-sol-logo.png" class="w-6 h-6 rounded-full">
+                                    <span class="font-bold">SOL</span>
+                                    <i class="ph ph-caret-down text-sm"></i>
+                                </button>
+                            </div>
+                            <div class="text-sm text-gray-500 mt-2">~$1,452.00</div>
+                        </div>
+
+                        <!-- Swap Icon Button -->
+                        <div class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 border-4 border-[#121212] rounded-full">
+                            <button class="w-10 h-10 bg-phantom-card rounded-full flex items-center justify-center text-phantom-purple hover:bg-gray-700 transition-colors">
+                                <i class="ph ph-arrows-down-up text-xl"></i>
+                            </button>
+                        </div>
+
+                        <!-- You Receive Box -->
+                        <div class="bg-phantom-card rounded-3xl p-5 border border-gray-800 mb-6">
+                            <div class="text-sm text-gray-400 mb-3 flex justify-between">
+                                <span>You Receive</span>
+                                <span>Balance: 450.00</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <input type="number" value="1448.50" class="bg-transparent border-none outline-none text-3xl font-bold w-1/2 text-white" readonly>
+                                <button class="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 py-2 px-3 rounded-full transition-colors">
+                                    <img src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png" class="w-6 h-6 rounded-full">
+                                    <span class="font-bold">USDC</span>
+                                    <i class="ph ph-caret-down text-sm"></i>
+                                </button>
+                            </div>
+                            <div class="text-sm text-gray-500 mt-2">~$1,448.50</div>
+                        </div>
+                    </div>
+
+                    <!-- Swap Details -->
+                    <div class="bg-phantom-card rounded-2xl p-4 mb-8 border border-gray-800">
+                        <div class="flex justify-between text-sm mb-3">
+                            <span class="text-gray-400">Rate</span>
+                            <span class="font-medium">1 SOL ≈ 144.85 USDC</span>
+                        </div>
+                        <div class="flex justify-between text-sm mb-3">
+                            <span class="text-gray-400">Slippage Tolerance</span>
+                            <span class="font-medium text-phantom-success">0.5%</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-400">Estimated Network Fee</span>
+                            <span class="font-medium">~0.00001 SOL</span>
+                        </div>
+                    </div>
+
+                    <button class="w-full py-4 bg-phantom-purple text-black rounded-2xl font-bold text-lg hover:opacity-90 transition-opacity shadow-[0_0_20px_rgba(171,159,242,0.3)]" onclick="showToast('Symulacja transakcji wymiany')">Review Swap</button>
+                </div>
+            `;
+        }
+
+        // --- Render NFTs ---
+        function renderNFTs() {
+            const main = document.getElementById('main-content');
+            let html = `
+                <div class="pt-6 pb-4 animate-fade-in">
+                    <div class="flex justify-between items-center mb-6">
+                        <h1 class="text-2xl font-bold">Collectibles</h1>
+                        <button class="text-phantom-purple hover:text-white transition-colors text-sm font-medium" onclick="openModal('receive-modal')"><i class="ph ph-plus mr-1"></i>Receive</button>
+                    </div>
+                    
+                    <div class="flex gap-2 mb-6 overflow-x-auto no-scrollbar pb-2">
+                        <button class="px-4 py-1.5 bg-phantom-light text-white rounded-full text-sm font-medium whitespace-nowrap">All</button>
+                        <button class="px-4 py-1.5 bg-phantom-card border border-gray-800 text-gray-400 rounded-full text-sm font-medium whitespace-nowrap hover:bg-gray-800">Hidden (2)</button>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            `;
+
+            nfts.forEach(nft => {
+                html += `
+                    <div class="bg-phantom-card rounded-3xl overflow-hidden cursor-pointer hover:ring-2 ring-phantom-purple transition-all group border border-gray-800/50">
+                        <div class="aspect-square bg-gray-800 relative overflow-hidden">
+                            <img src="${nft.image}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                        </div>
+                        <div class="p-3">
+                            <div class="text-xs text-gray-400 mb-1">${nft.collection}</div>
+                            <div class="font-semibold text-sm truncate">${nft.name}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                    </div>
+                </div>
+            `;
+            main.innerHTML = html;
+        }
+
+        // --- Render Activity ---
+        function renderActivity() {
+            const main = document.getElementById('main-content');
+            let html = `
+                <div class="pt-6 pb-4 animate-fade-in">
+                    <div class="flex justify-between items-center mb-6">
+                        <h1 class="text-2xl font-bold">Activity</h1>
+                        <button class="text-gray-400 hover:text-white p-2 bg-phantom-card rounded-full"><i class="ph ph-download-simple text-lg"></i></button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            `;
+
+            activity.forEach(item => {
+                let mainText = item.type === 'swap' ? item.details : `${item.type.charAt(0).toUpperCase() + item.type.slice(1)} ${item.asset}`;
+                let amountText = item.amount ? `${item.type === 'send' ? '-' : (item.type === 'receive' ? '+' : '')}${item.amount} ${item.asset}` : item.status;
+                let amountClass = item.type === 'receive' ? 'text-phantom-success' : (item.type === 'send' ? 'text-white' : 'text-gray-300');
+
+                html += `
+                    <div class="bg-phantom-card p-4 rounded-3xl flex items-center justify-between border border-gray-800/50 hover:bg-phantom-light cursor-pointer transition-colors">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-full ${item.bg} flex items-center justify-center shrink-0">
+                                <i class="ph ${item.icon} text-xl ${item.color}"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-[15px]">${mainText}</h3>
+                                <p class="text-xs text-gray-400 mt-1">${item.date}</p>
+                            </div>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <div class="font-semibold text-[15px] ${amountClass}">${amountText}</div>
+                            <p class="text-xs text-gray-500 mt-1">${item.status}</p>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                    </div>
+                </div>
+            `;
+            main.innerHTML = html;
+        }
+
+        // Initialize App
+        function initApp() {
+            updateAssetsList(); // Ensure initial active assets and balance are ready
+            switchTab('home'); // Load home tab immediately
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
+    </script>
+</body>
+</html>
